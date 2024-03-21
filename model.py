@@ -1,18 +1,14 @@
 import csv
 import random
+import pdf
+import word_dict
 
-
-class WordModel:
-    def __init__(self,db_path=r'dict_data/EnWords.csv') -> None:
-        self.data=[]
-        with open(db_path, newline='',encoding='UTF-8') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for i in reader:
-                    self.data.append({
-                         'en':i['word'],
-                         'cn':i['translation']
-                    })
-        self.now_id=int(random.uniform(0,len(self.data)))
+class MyModel:
+    def __init__(self,pdf_path) -> None:
+         w_dict=word_dict.WordModel()
+         w_list=pdf.get_pdf_word_list(pdf_path)
+         self.data=w_dict.get_data(w_list)
+         self.now_id=int(random.uniform(0,len(self.data)))
     
     def to_next(self):
          next_id=int(random.uniform(0,len(self.data)))
@@ -32,12 +28,3 @@ class WordModel:
     def get_en(self):
          return self.__get_data__('en')
         
-
-
-
-
-
-if __name__ == "__main__":
-     a=WordModel()
-     for i in a.data:
-          print(i)

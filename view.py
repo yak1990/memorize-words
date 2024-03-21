@@ -19,3 +19,12 @@ class MyView(QMainWindow):
 
     def set_text(self,now_text):
         self.word_label.setText(now_text)
+
+
+    def resizeEvent(self, event):
+        # 调整字体大小以适应新尺寸
+        new_font_size = max(10, min(self.width() // 20, self.height() // 10))  # 计算新的字体大小
+        font = self.word_label.font()  # 获取当前字体
+        font.setPointSize(new_font_size)  # 设置新的字体大小
+        self.word_label.setFont(font)  # 应用新的字体
+        super().resizeEvent(event)  # 调用父类的 resizeEvent 方法
