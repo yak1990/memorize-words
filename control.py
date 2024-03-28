@@ -18,12 +18,22 @@ class MyController:
         self.dispatch.add_listener(my_event.EvnetType.button,self.ButtonEventHandler)
 
     
+    def set_log_info(self):
+        info_str=f'known len : {self.model.get_known_size()}'
+        info_str=f'{info_str}\n'
+        info_str=f'{info_str}unfamiliar len : {self.model.get_unfamiliar_size()}'
+        self.view.addLog(info_str)
+
+
     def set_file_info(self):
         f_list=self.model.get_pdf_list()
         self.view.set_file_info(f_list)
+        self.set_log_info()
     
     def set_word_info(self):
         self.view.set_word_info(self.model.get_en(),self.model.get_cn())
+        self.set_log_info()
+    
 
     def MouseEventHandler(self, event_data):
         event=event_data.data
@@ -33,6 +43,7 @@ class MyController:
         elif event['type'] == my_event.WordEventType.to_next:
             self.model.to_next()
             self.set_word_info()
+        self.set_log_info()
         
 
     

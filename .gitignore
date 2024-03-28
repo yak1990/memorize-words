@@ -1,3 +1,25 @@
-__pycache__
+# PyInstaller 生成的临时文件和文件夹
+build/
+dist/
+__pycache__/
+*.spec
 
+# 如果你使用了 virtualenv，也可以忽略掉
+venv/
+.env/
+env/
+
+# 编辑器或IDE生成的文件和文件夹
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统生成的文件和文件夹
+.DS_Store
+Thumbs.db
+
+
+# 个人文件
 db.cache
