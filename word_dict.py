@@ -8,15 +8,16 @@ class WordModel:
         with open(db_path, newline='',encoding='UTF-8') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for i in reader:
-                    self.data[i['word']]={
-                         'en':i['word'],
-                         'cn':i['translation']
-                    }
+                    self.data[i['word']]=i['translation']
 
     
     def get_data(self,data_list):
-         out=[self.data[i] for i in data_list if i in self.data]
+         out=[i for i in data_list if i in self.data]
          return out
+    
+
+    def get_cn(self,en_text):
+         return self.data[en_text]
         
 
 
