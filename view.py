@@ -50,7 +50,7 @@ class FileList(QWidget):
         event_data=my_event.Event(
                 my_event.EvnetType.button,
                 {
-                    'data': my_event.ButtonEvnetType.add_file,
+                    'type': my_event.ButtonEvnetType.add_file,
                     'stu':False
                 }
             )

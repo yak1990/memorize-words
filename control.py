@@ -7,6 +7,12 @@ class MyController:
         self.dispatch=dispatch
         self.model=model
 
+        if self.model.get_unfamiliar_size()>0:
+            self.set_word_info()
+        self.set_file_info()
+
+        self.view.update_word_info()
+
 
         self.dispatch.add_listener(my_event.EvnetType.mouse,self.MouseEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.button,self.ButtonEventHandler)
@@ -32,11 +38,11 @@ class MyController:
     
     def ButtonEventHandler(self,event_data):
         now_data=event_data.data
-        if now_data['data']==my_event.ButtonEvnetType.add_file:
+        if now_data['type']==my_event.ButtonEvnetType.add_file:
             now_path=self.view.get_file()
             if now_path:
                 self.model.add_pdf(now_path)
-        elif now_data['data']==my_event.ButtonEvnetType.remove_file:
+        elif now_data['type']==my_event.ButtonEvnetType.remove_file:
             now_path=now_data['path']
             self.model.remove_pdf(now_path)
 

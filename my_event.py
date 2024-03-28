@@ -5,12 +5,12 @@ class EvnetType(Enum):
     button = 2
 
 class ButtonEvnetType(Enum):
-    add_file = 1
-    remove_file = 2
+    add_file = 11
+    remove_file = 22
 
 class WordEventType(Enum):
-    to_known=1
-    to_next=2
+    to_known=111
+    to_next=222
 
 class Event:
     def __init__(self, event_type, data=None):
