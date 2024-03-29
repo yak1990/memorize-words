@@ -1,3 +1,5 @@
+googletrans==4.0.0rc1
+nltk==3.8.1
 pyinstaller==6.5.0
 PyPDF2==3.0.1
 PySide2==5.15.2.1

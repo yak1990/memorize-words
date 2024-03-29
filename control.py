@@ -17,6 +17,7 @@ class MyController:
         self.dispatch.add_listener(my_event.EvnetType.mouse,self.MouseEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.button,self.ButtonEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.key,self.KeyEventHandler)
+        self.dispatch.add_listener(my_event.EvnetType.update,self.UpdateEventHandler)
 
     
     def set_log_info(self):
@@ -32,7 +33,8 @@ class MyController:
         self.set_log_info()
     
     def set_word_info(self):
-        self.view.set_word_info(self.model.get_en(),self.model.get_cn())
+        now_info=self.model.get_word_info()
+        self.view.set_word_info(now_info)
         self.set_log_info()
     
 
@@ -51,6 +53,9 @@ class MyController:
             self.model.set_to_known(en_text)
         
         self.set_log_info()
+
+    def UpdateEventHandler(self,event_data):
+        self.model.update()
     
     def ButtonEventHandler(self,event_data):
         now_data=event_data.data

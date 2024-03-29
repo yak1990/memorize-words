@@ -12,7 +12,7 @@ from PySide2.QtWidgets import (
     QFileDialog,
     QTextEdit
 )
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, QTimer
 import my_event
 
 class FileList(QWidget):
@@ -94,12 +94,14 @@ class WordWidget(QWidget):
 
         self.en_text='请添加pdf'
         self.cn_text=''
-        self.cn_stu=False
+        self.en_sentence=''
+        self.cn_sentence=''
+        self.detail_stu=False
 
     
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.cn_stu = not self.cn_stu
+            self.detail_stu = not self.detail_stu
         elif event.button() == Qt.RightButton:
             
             event_data=my_event.Event(
@@ -125,19 +127,25 @@ class WordWidget(QWidget):
             )
             self.dispatcher.dispatch(event_data)
 
-    
+
 
     def update_word_info(self):
         now_str=self.en_text
-        if self.cn_stu:
+        if self.detail_stu:
             now_str=f'{now_str}\n{self.cn_text}'
+            if self.en_sentence:
+                now_str=f'{now_str}\n\n{self.en_sentence}'
+                now_str=f'{now_str}\n{self.cn_sentence}'
         self.word_label.setText(now_str)
 
     
-    def set_word_info(self, en_text,cn_text):
-        self.en_text=en_text
-        self.cn_text=cn_text
-        self.cn_stu=False
+    def set_word_info(self, word_info):
+        print(word_info)
+        self.en_text=word_info['en']
+        self.cn_text=word_info['cn']
+        self.en_sentence=word_info['en_sentence']
+        self.cn_sentence=word_info['cn_sentence']
+        self.detail_stu=False
         self.update_word_info()
 
     def resizeEvent(self, event):
@@ -151,6 +159,9 @@ class WordWidget(QWidget):
 class MyView(QMainWindow):
     def __init__(self, title,dispatcher):
         super().__init__()
+
+        self.dispatcher=dispatcher
+        
         self.setWindowTitle(title)
         self.setGeometry(100, 100, 800, 400)  # 增加窗口大小以便更清晰地查看布局
         
@@ -158,6 +169,7 @@ class MyView(QMainWindow):
         main_splitter = QSplitter(Qt.Vertical)
 
         splitter = QSplitter(Qt.Horizontal)  # 创建一个水平分割器
+
 
         # 左侧布局和小部件
         self.left_widget = FileList(dispatcher)
@@ -187,6 +199,22 @@ class MyView(QMainWindow):
         # 设置中央小部件
         self.setCentralWidget(main_splitter)
 
+        # 创建一个 QTimer 实例
+        self.timer = QTimer(self)
+        # 设置定时器超时（触发）间隔（毫秒）
+        self.timer.setInterval(1000)  # 1000 毫秒（1 秒）
+        # 将定时器的 timeout 信号连接到槽函数
+        self.timer.timeout.connect(self.SetUpdate)
+        # 启动定时器
+        self.timer.start()
+
+
+    def SetUpdate(self):
+        event_data=my_event.Event(
+                my_event.EvnetType.update,
+                None
+            )
+        self.dispatcher.dispatch(event_data)
 
 
     def get_file(self):
@@ -202,8 +230,8 @@ class MyView(QMainWindow):
     def update_word_info(self):
         self.right_widget.update_word_info()
 
-    def set_word_info(self, en_text,cn_text):
-        self.right_widget.set_word_info(en_text,cn_text)
+    def set_word_info(self, word_info):
+        self.right_widget.set_word_info(word_info)
 
     def set_file_info(self,file_data_list):
         self.left_widget.setItem(file_data_list)

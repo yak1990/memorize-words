@@ -1,26 +1,86 @@
 import csv
 import random
 import pdf
-import word_dict
+
+import os
+import nltk
+nltk_dir = 'DLCache/nltk'
+os.makedirs(nltk_dir, exist_ok=True)  # 确保目录存在
+nltk.data.path.append(nltk_dir)
+nltk.download('wordnet', download_dir=nltk_dir)
+from nltk.corpus import wordnet
+from collections import defaultdict
+
+from googletrans import Translator
+import threading
+import queue
+
+import time
+
+output_queue=queue.Queue()
+def translator_consumer(input_queue,dest_language='zh-cn'):
+        translator = Translator()
+        while True:
+            now_data = input_queue.get()
+            if now_data is None:  # 使用 None 作为生产者结束信号
+                break
+            
+            out_data={}
+            for now_word,now_list in now_data.items():
+               print('before:',now_word)
+               translation = translator.translate(now_word, dest=dest_language)
+               out_data['en']=now_word
+               out_data['cn']=translation.text
+               out_data['sentence']=[]
+               for sentence in now_list:
+                    translation = translator.translate(sentence, dest=dest_language)
+                    out_data['sentence'].append({
+                              'en':sentence,
+                              'cn':translation.text
+                              }
+                         )
+               print('done')
+               output_queue.put(out_data)
+               print(output_queue.qsize())
+               time.sleep(0.5)
+            input_queue.task_done()
+
+
 
 class MyModel:
     def __init__(self) -> None:
-         self.w_dict=word_dict.WordModel()
-         self.unfamiliar_words=[] # 生单词
-         self.known_words=[] # 已经记住的单词
-         self.pdf_words={}
-    
-    def add_pdf(self,pdf_path):
-         w_list=pdf.get_pdf_word_list(pdf_path)
-         now_data=self.w_dict.get_data(w_list)
-         now_data=[i for i in now_data if i not in self.known_words]
+         self.known_words=defaultdict(list) # 已经记住的单词
          
-         self.pdf_words[pdf_path]=now_data
+         self.word_dict=defaultdict(list)  # 生单词
+         self.pdf_words={}
 
-         self.unfamiliar_words.extend(now_data)
-         self.unfamiliar_words=list(set(self.unfamiliar_words))
+         self.now_word=''
+         self.now_info={}
+         
+         
 
-         self.now_id=int(random.uniform(0,len(self.unfamiliar_words)))
+
+
+    def add_pdf(self,pdf_path):
+         w_dict=pdf.get_pdf_word_dict(pdf_path)
+         w_list=[i for i in w_dict if len(wordnet.synsets(i))>0]
+         w_dict={i:j for i,j in w_dict.items() if i in w_list and i not in self.known_words}
+         
+         self.pdf_words[pdf_path]=[i for i in w_dict]
+
+         
+         input_queue = queue.Queue()
+         for i,j in w_dict.items():
+              input_queue.put({i:j})
+         input_queue.put(None)
+
+         consumer_thread = threading.Thread(target=translator_consumer, args=(input_queue,))
+         consumer_thread.daemon = True
+         consumer_thread.start()
+
+
+         if self.now_word == '':
+              self.to_next()
 
      
     def remove_pdf(self,pdf_path):
@@ -28,43 +88,62 @@ class MyModel:
               return
 
          now_data=self.pdf_words[pdf_path]
-         self.unfamiliar_words=[i for i in self.unfamiliar_words if i not in now_data]
+         self.word_dict={i:j for i,j in self.word_dict.items() if i not in now_data}
 
          del self.pdf_words[pdf_path]
          
          self.to_next()
-
+    
+    def update(self):
+         while output_queue.qsize()>0:
+              tmp_data=output_queue.get()
+              en_word=tmp_data['en']
+              self.word_dict[en_word]=tmp_data
+              output_queue.task_done()
+         
     def to_next(self):
-         next_id=int(random.uniform(0,len(self.unfamiliar_words)))
-         run_count=10
-         while next_id==self.now_id and run_count>0:
-            run_count-=1
-            next_id=int(random.uniform(0,len(self.unfamiliar_words)))
-         self.now_id=next_id
+         w_list=list(self.word_dict.keys())
+         if len(w_list)>0:
+               next_word = random.choice(w_list)
+               run_count=10
+               while next_word==self.now_word and run_count>0:
+                    run_count-=1
+                    next_word = random.choice(w_list)
+               self.now_word=next_word
+               
+               now_sentence=random.choice(self.word_dict[self.now_word]['sentence'])
+               now_info={
+                    'en':self.now_word,
+                    'cn':self.word_dict[self.now_word]['cn'],
+                    'en_sentence':now_sentence['en'],
+                    'cn_sentence':now_sentence['cn']
+               }
+
+               self.now_info=now_info
+         else:
+              now_info={
+                    'en':'暂无单词',
+                    'cn':'',
+                    'en_sentence':'',
+                    'cn_sentence':''
+               }
+              self.now_info=now_info
      
     def set_to_known(self,en_text):
-         if en_text not in self.known_words:
-               self.known_words.append(en_text)
-         if en_text in self.unfamiliar_words:
-              self.unfamiliar_words.remove(en_text)
-     #     self.to_next()
+         self.known_words[en_text].extend(self.word_dict[en_text])
+         del self.word_dict[en_text]
 
          print(f'known len : {len(self.known_words)}')
-         print(f'unfamiliar len : {len(self.unfamiliar_words)}')
+         print(f'unfamiliar len : {len(self.word_dict)}')
          
 
     
-    def get_en(self):
-         return self.unfamiliar_words[self.now_id]
-       
-    
-    def get_cn(self):
-         en_text=self.get_en()
-         return self.w_dict.get_cn(en_text)
+    def get_word_info(self):
+         return self.now_info
       
     
     def get_unfamiliar_size(self):
-         return len(self.unfamiliar_words)
+         return len(self.word_dict)
     
     def get_known_size(self):
          return len(self.known_words)
@@ -72,3 +151,4 @@ class MyModel:
     def get_pdf_list(self):
          out=[i for i in self.pdf_words]
          return out 
+

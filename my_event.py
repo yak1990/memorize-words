@@ -4,6 +4,7 @@ class EvnetType(Enum):
     mouse = 1
     button = 2
     key =3 
+    update=4
 
 class ButtonEvnetType(Enum):
     add_file = 11
