@@ -18,24 +18,21 @@ class MyController:
         self.dispatch.add_listener(my_event.EvnetType.button,self.ButtonEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.key,self.KeyEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.update,self.UpdateEventHandler)
+        self.dispatch.add_listener(my_event.EvnetType.update,self.set_log_info)
 
     
-    def set_log_info(self):
-        info_str=f'known len : {self.model.get_known_size()}'
-        info_str=f'{info_str}\n'
-        info_str=f'{info_str}unfamiliar len : {self.model.get_unfamiliar_size()}'
+    def set_log_info(self,*args,**dargs):
+        info_str=self.model.get_log_info()
         self.view.addLog(info_str)
 
 
     def set_file_info(self):
         f_list=self.model.get_pdf_list()
         self.view.set_file_info(f_list)
-        self.set_log_info()
     
     def set_word_info(self):
         now_info=self.model.get_word_info()
         self.view.set_word_info(now_info)
-        self.set_log_info()
     
 
     def MouseEventHandler(self, event_data):
@@ -43,7 +40,6 @@ class MyController:
         if event['type'] == my_event.WordEventType.to_next:
             self.model.to_next()
             self.set_word_info()
-        self.set_log_info()
         
 
     def KeyEventHandler(self, event_data):
@@ -51,8 +47,6 @@ class MyController:
         if event['type'] == my_event.WordEventType.to_known:
             en_text=event['en']
             self.model.set_to_known(en_text)
-        
-        self.set_log_info()
 
     def UpdateEventHandler(self,event_data):
         self.model.update()

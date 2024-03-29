@@ -18,11 +18,13 @@ import queue
 import time
 
 output_queue=queue.Queue()
-def translator_consumer(input_queue,dest_language='zh-cn'):
+input_queue = queue.Queue()
+def translator_consumer(dest_language='zh-cn'):
         translator = Translator()
         while True:
             try:
                now_data = input_queue.get()
+               # print(now_data)
                if now_data is None:  # 使用 None 作为生产者结束信号
                     break
                
@@ -47,7 +49,8 @@ def translator_consumer(input_queue,dest_language='zh-cn'):
                     print(output_queue.qsize())
                     time.sleep(0.5)
                input_queue.task_done()
-            except:
+            except Exception as e:
+                 print(f"An error occurred: {e}")
                  time.sleep(3)
                  translator = Translator()
 
@@ -57,6 +60,7 @@ class MyModel:
     def __init__(self) -> None:
          self.known_words=defaultdict(list) # 已经记住的单词
          
+         self.raw_word_dict=defaultdict(list)
          self.word_dict=defaultdict(list)  # 生单词
          self.pdf_words={}
 
@@ -70,20 +74,13 @@ class MyModel:
     def add_pdf(self,pdf_path):
          w_dict=pdf.get_pdf_word_dict(pdf_path)
          w_list=[i for i in w_dict if len(wordnet.synsets(i))>0]
-         w_dict={i:j for i,j in w_dict.items() if i in w_list and i not in self.known_words}
+         w_dict={i:j for i,j in w_dict.items() if i in w_list and i not in self.known_words and i not in self.raw_word_dict}
          
          self.pdf_words[pdf_path]=[i for i in w_dict]
 
          
-         input_queue = queue.Queue()
          for i,j in w_dict.items():
-              input_queue.put({i:j})
-         input_queue.put(None)
-
-         consumer_thread = threading.Thread(target=translator_consumer, args=(input_queue,))
-         consumer_thread.daemon = True
-         consumer_thread.start()
-
+              self.raw_word_dict[i].extend(j)
 
          if self.now_word == '':
               self.to_next()
@@ -101,11 +98,22 @@ class MyModel:
          self.to_next()
     
     def update(self):
-         while output_queue.qsize()>0:
-              tmp_data=output_queue.get()
-              en_word=tmp_data['en']
-              self.word_dict[en_word]=tmp_data
-              output_queue.task_done()
+         if input_queue.qsize()==0 and len(self.raw_word_dict)>0:
+               for i,j in self.raw_word_dict.items():
+                    input_queue.put({i:j})
+               input_queue.put(None)
+
+               consumer_thread = threading.Thread(target=translator_consumer)
+               consumer_thread.daemon = True
+               consumer_thread.start()
+               print('start translation')
+         else:
+               while output_queue.qsize()>0:
+                    tmp_data=output_queue.get()
+                    en_word=tmp_data['en']
+                    self.word_dict[en_word]=tmp_data
+                    del self.raw_word_dict[en_word]
+                    output_queue.task_done()
          
     def to_next(self):
          w_list=list(self.word_dict.keys())
@@ -151,8 +159,11 @@ class MyModel:
     def get_unfamiliar_size(self):
          return len(self.word_dict)
     
-    def get_known_size(self):
-         return len(self.known_words)
+#     def get_known_size(self):
+#          return len(self.known_words)
+    
+    def get_log_info(self):
+         return f'known len: {len(self.known_words)} , unfamiliar len: {len(self.word_dict)} , raw len: {len(self.raw_word_dict)}'
 
     def get_pdf_list(self):
          out=[i for i in self.pdf_words]

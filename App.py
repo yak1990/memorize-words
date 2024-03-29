@@ -6,10 +6,17 @@ import model
 import my_event
 import pickle
 import os
+import time
 
+last_save=time.time()
 def save_squeeze(data,data_path):
-        with open(data_path, 'wb') as f:
-            pickle.dump(data, f)
+        global last_save
+        save_t=20 # 20s 存一次
+        if time.time()-last_save>save_t:
+            with open(data_path, 'wb') as f:
+                pickle.dump(data, f)
+            last_save=time.time()
+            print(f'save time : {last_save}')
 
 
 

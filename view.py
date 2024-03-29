@@ -97,36 +97,28 @@ class WordWidget(QWidget):
         layout = QVBoxLayout()
 
         # 创建标签和编辑框
-        self.englishWordLabel = QLabel("英文：")
-        self.englishWordEdit = QTextEdit()
-        self.englishWordEdit.setReadOnly(True)
+        self.en_label = QLabel("")
+        self.en_label.setWordWrap(True)
 
-        self.chineseTranslationLabel = QLabel("中文翻译：")
-        self.chineseTranslationEdit = QTextEdit()
-        self.chineseTranslationEdit.setReadOnly(True)
-
-        self.englishSentenceLabel = QLabel("英文例句：")
-        self.englishSentenceEdit = QTextEdit()
-        self.englishSentenceEdit.setReadOnly(True)
-
-        self.chineseSentenceLabel = QLabel("中文例句翻译：")
-        self.chineseSentenceEdit = QTextEdit()
-        self.chineseSentenceEdit.setReadOnly(True)
-
-        self.synonymsLabel = QLabel("同义词：")
-        self.synonymsEdit = QTextEdit()
+        self.cn_label = QLabel("")
+        self.cn_label.setWordWrap(True)
+        
+        self.en_sentence_label = QLabel("")
+        self.en_sentence_label.setWordWrap(True)
+        
+        self.cn_sentence_label = QLabel("")
+        self.cn_sentence_label.setWordWrap(True)
+        
+        self.synonyms_label = QLabel("")
+        self.synonyms_label.setWordWrap(True)
+    
 
         # 将控件添加到布局中
-        layout.addWidget(self.englishWordLabel)
-        layout.addWidget(self.englishWordEdit)
-        layout.addWidget(self.chineseTranslationLabel)
-        layout.addWidget(self.chineseTranslationEdit)
-        layout.addWidget(self.englishSentenceLabel)
-        layout.addWidget(self.englishSentenceEdit)
-        layout.addWidget(self.chineseSentenceLabel)
-        layout.addWidget(self.chineseSentenceEdit)
-        layout.addWidget(self.synonymsLabel)
-        layout.addWidget(self.synonymsEdit)
+        layout.addWidget(self.en_label)
+        layout.addWidget(self.cn_label)
+        layout.addWidget(self.en_sentence_label)
+        layout.addWidget(self.cn_sentence_label)
+        layout.addWidget(self.synonyms_label)
 
         # 设置布局
         self.setLayout(layout)
@@ -162,15 +154,15 @@ class WordWidget(QWidget):
 
 
     def update_word_info(self):
-        self.englishWordEdit.setText(self.en_text)
+        self.en_label.setText(self.en_text)
         if self.detail_stu:
-            self.chineseTranslationEdit.setText(self.cn_text)
-            self.englishSentenceEdit.setText(self.en_sentence)
-            self.chineseSentenceEdit.setText(self.cn_sentence)
+            self.cn_label.setText(self.cn_text)
+            self.en_sentence_label.setText(self.en_sentence)
+            self.cn_sentence_label.setText(self.cn_sentence)
         else:
-            self.chineseTranslationEdit.setText('')
-            self.englishSentenceEdit.setText('')
-            self.chineseSentenceEdit.setText('')
+            self.cn_label.setText('')
+            self.en_sentence_label.setText('')
+            self.cn_sentence_label.setText('')
 
             
 
@@ -184,13 +176,15 @@ class WordWidget(QWidget):
         self.detail_stu=False
         self.update_word_info()
 
-    # def resizeEvent(self, event):
-    #     # new_font_size = max(8, min(self.width() // 40, self.height() // 20))
-    #     new_font_size = min(self.width() // 20, self.height() // 10)
-    #     font = self.en_label.font()
-    #     font.setPointSize(new_font_size)
-    #     self.en_label.setFont(font)
-    #     super().resizeEvent(event)
+    def resizeEvent(self, event):
+        new_font_size = max(8, min(self.width() // 40, self.height() // 20))
+        font = self.en_label.font()
+        font.setPointSize(new_font_size)
+        self.en_label.setFont(font)
+        self.cn_label.setFont(font)
+        self.en_sentence_label.setFont(font)
+        self.cn_sentence_label.setFont(font)
+        super().resizeEvent(event)
 
 class MyView(QMainWindow):
     def __init__(self, title,dispatcher):
