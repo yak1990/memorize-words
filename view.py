@@ -73,6 +73,81 @@ class FileList(QWidget):
             self.dispatcher.dispatch(event_data)
 
 
+
+
+class WordWidget(QWidget):
+    def __init__(self,dispatcher):
+        super().__init__()
+        self.setFocusPolicy(Qt.StrongFocus)
+
+        # 右侧布局和小部件
+        right_widget = QWidget()
+        self.text_layout = QHBoxLayout(right_widget)
+        self.word_label = QLabel('', right_widget)
+        self.word_label.setAlignment(Qt.AlignCenter)
+        self.word_label.setWordWrap(True)
+        self.text_layout.addWidget(self.word_label)
+
+        self.setLayout(self.text_layout)
+
+        self.dispatcher=dispatcher
+
+        self.en_text='请添加pdf'
+        self.cn_text=''
+        self.cn_stu=False
+
+    
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.cn_stu = not self.cn_stu
+        elif event.button() == Qt.RightButton:
+            
+            event_data=my_event.Event(
+                my_event.EvnetType.mouse,
+                {
+                    'type':my_event.WordEventType.to_next,
+                }
+            )
+            self.dispatcher.dispatch(event_data)
+
+        self.update_word_info()
+
+    def keyPressEvent(self, event):
+
+        # 按下f建表明记住单词
+        if event.key()==70:
+            event_data=my_event.Event(
+                my_event.EvnetType.key,
+                {
+                    'type':my_event.WordEventType.to_known,
+                    'en':self.en_text
+                }
+            )
+            self.dispatcher.dispatch(event_data)
+
+    
+
+    def update_word_info(self):
+        now_str=self.en_text
+        if self.cn_stu:
+            now_str=f'{now_str}\n{self.cn_text}'
+        self.word_label.setText(now_str)
+
+    
+    def set_word_info(self, en_text,cn_text):
+        self.en_text=en_text
+        self.cn_text=cn_text
+        self.cn_stu=False
+        self.update_word_info()
+
+    def resizeEvent(self, event):
+        # new_font_size = max(8, min(self.width() // 40, self.height() // 20))
+        new_font_size = min(self.width() // 20, self.height() // 10)
+        font = self.word_label.font()
+        font.setPointSize(new_font_size)
+        self.word_label.setFont(font)
+        super().resizeEvent(event)
+
 class MyView(QMainWindow):
     def __init__(self, title,dispatcher):
         super().__init__()
@@ -87,17 +162,11 @@ class MyView(QMainWindow):
         # 左侧布局和小部件
         self.left_widget = FileList(dispatcher)
 
-        # 右侧布局和小部件
-        right_widget = QWidget()
-        self.text_layout = QHBoxLayout(right_widget)
-        self.word_label = QLabel('', right_widget)
-        self.word_label.setAlignment(Qt.AlignCenter)
-        self.word_label.setWordWrap(True)
-        self.text_layout.addWidget(self.word_label)
+        self.right_widget=WordWidget(dispatcher)
 
         # 将左侧和右侧小部件添加到分割器中
         splitter.addWidget(self.left_widget)
-        splitter.addWidget(right_widget)
+        splitter.addWidget(self.right_widget)
         splitter.setStretchFactor(0, 1)  # 设置左侧小部件的初始比例因子
         splitter.setStretchFactor(1, 3)  # 设置右侧小部件的初始比例因子
 
@@ -118,35 +187,6 @@ class MyView(QMainWindow):
         # 设置中央小部件
         self.setCentralWidget(main_splitter)
 
-        self.dispatcher=dispatcher
-
-        self.en_text='请添加pdf'
-        self.cn_text=''
-        self.cn_stu=False
-
-    def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            self.cn_stu = not self.cn_stu
-        elif event.button() == Qt.MiddleButton:
-            event_data=my_event.Event(
-                my_event.EvnetType.mouse,
-                {
-                    'type':my_event.WordEventType.to_known,
-                    'en':self.en_text
-                }
-            )
-            self.dispatcher.dispatch(event_data)
-        elif event.button() == Qt.RightButton:
-            
-            event_data=my_event.Event(
-                my_event.EvnetType.mouse,
-                {
-                    'type':my_event.WordEventType.to_next,
-                }
-            )
-            self.dispatcher.dispatch(event_data)
-
-        self.update_word_info()
 
 
     def get_file(self):
@@ -160,26 +200,15 @@ class MyView(QMainWindow):
 
 
     def update_word_info(self):
-        now_str=self.en_text
-        if self.cn_stu:
-            now_str=f'{now_str}\n{self.cn_text}'
-        self.word_label.setText(now_str)
+        self.right_widget.update_word_info()
 
     def set_word_info(self, en_text,cn_text):
-        self.en_text=en_text
-        self.cn_text=cn_text
-        self.cn_stu=False
-        self.update_word_info()
+        self.right_widget.set_word_info(en_text,cn_text)
 
     def set_file_info(self,file_data_list):
         self.left_widget.setItem(file_data_list)
 
-    def resizeEvent(self, event):
-        new_font_size = max(8, min(self.width() // 40, self.height() // 20))
-        font = self.word_label.font()
-        font.setPointSize(new_font_size)
-        self.word_label.setFont(font)
-        super().resizeEvent(event)
+
 
     def addLog(self,message):
         """向日志框中添加一条新消息"""

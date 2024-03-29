@@ -16,6 +16,7 @@ class MyController:
 
         self.dispatch.add_listener(my_event.EvnetType.mouse,self.MouseEventHandler)
         self.dispatch.add_listener(my_event.EvnetType.button,self.ButtonEventHandler)
+        self.dispatch.add_listener(my_event.EvnetType.key,self.KeyEventHandler)
 
     
     def set_log_info(self):
@@ -37,15 +38,19 @@ class MyController:
 
     def MouseEventHandler(self, event_data):
         event=event_data.data
-        if event['type'] == my_event.WordEventType.to_known:
-            en_text=event['en']
-            self.model.set_to_known(en_text)
-        elif event['type'] == my_event.WordEventType.to_next:
+        if event['type'] == my_event.WordEventType.to_next:
             self.model.to_next()
             self.set_word_info()
         self.set_log_info()
         
 
+    def KeyEventHandler(self, event_data):
+        event=event_data.data
+        if event['type'] == my_event.WordEventType.to_known:
+            en_text=event['en']
+            self.model.set_to_known(en_text)
+        
+        self.set_log_info()
     
     def ButtonEventHandler(self,event_data):
         now_data=event_data.data

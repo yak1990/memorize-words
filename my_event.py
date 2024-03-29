@@ -3,6 +3,7 @@ from enum import Enum
 class EvnetType(Enum):
     mouse = 1
     button = 2
+    key =3 
 
 class ButtonEvnetType(Enum):
     add_file = 11
