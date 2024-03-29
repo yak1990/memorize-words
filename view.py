@@ -10,7 +10,8 @@ from PySide2.QtWidgets import (
     QSplitter, 
     QListWidget, 
     QFileDialog,
-    QTextEdit
+    QTextEdit,
+    QLineEdit
 )
 from PySide2.QtCore import Qt, QTimer
 import my_event
@@ -78,17 +79,9 @@ class FileList(QWidget):
 class WordWidget(QWidget):
     def __init__(self,dispatcher):
         super().__init__()
+        self.init_ui()
         self.setFocusPolicy(Qt.StrongFocus)
 
-        # 右侧布局和小部件
-        right_widget = QWidget()
-        self.text_layout = QHBoxLayout(right_widget)
-        self.word_label = QLabel('', right_widget)
-        self.word_label.setAlignment(Qt.AlignCenter)
-        self.word_label.setWordWrap(True)
-        self.text_layout.addWidget(self.word_label)
-
-        self.setLayout(self.text_layout)
 
         self.dispatcher=dispatcher
 
@@ -96,8 +89,47 @@ class WordWidget(QWidget):
         self.cn_text=''
         self.en_sentence=''
         self.cn_sentence=''
+        self.same_en_list=[]
         self.detail_stu=False
 
+    def init_ui(self):
+        # 创建布局
+        layout = QVBoxLayout()
+
+        # 创建标签和编辑框
+        self.englishWordLabel = QLabel("英文：")
+        self.englishWordEdit = QTextEdit()
+        self.englishWordEdit.setReadOnly(True)
+
+        self.chineseTranslationLabel = QLabel("中文翻译：")
+        self.chineseTranslationEdit = QTextEdit()
+        self.chineseTranslationEdit.setReadOnly(True)
+
+        self.englishSentenceLabel = QLabel("英文例句：")
+        self.englishSentenceEdit = QTextEdit()
+        self.englishSentenceEdit.setReadOnly(True)
+
+        self.chineseSentenceLabel = QLabel("中文例句翻译：")
+        self.chineseSentenceEdit = QTextEdit()
+        self.chineseSentenceEdit.setReadOnly(True)
+
+        self.synonymsLabel = QLabel("同义词：")
+        self.synonymsEdit = QTextEdit()
+
+        # 将控件添加到布局中
+        layout.addWidget(self.englishWordLabel)
+        layout.addWidget(self.englishWordEdit)
+        layout.addWidget(self.chineseTranslationLabel)
+        layout.addWidget(self.chineseTranslationEdit)
+        layout.addWidget(self.englishSentenceLabel)
+        layout.addWidget(self.englishSentenceEdit)
+        layout.addWidget(self.chineseSentenceLabel)
+        layout.addWidget(self.chineseSentenceEdit)
+        layout.addWidget(self.synonymsLabel)
+        layout.addWidget(self.synonymsEdit)
+
+        # 设置布局
+        self.setLayout(layout)
     
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -130,13 +162,17 @@ class WordWidget(QWidget):
 
 
     def update_word_info(self):
-        now_str=self.en_text
+        self.englishWordEdit.setText(self.en_text)
         if self.detail_stu:
-            now_str=f'{now_str}\n{self.cn_text}'
-            if self.en_sentence:
-                now_str=f'{now_str}\n\n{self.en_sentence}'
-                now_str=f'{now_str}\n{self.cn_sentence}'
-        self.word_label.setText(now_str)
+            self.chineseTranslationEdit.setText(self.cn_text)
+            self.englishSentenceEdit.setText(self.en_sentence)
+            self.chineseSentenceEdit.setText(self.cn_sentence)
+        else:
+            self.chineseTranslationEdit.setText('')
+            self.englishSentenceEdit.setText('')
+            self.chineseSentenceEdit.setText('')
+
+            
 
     
     def set_word_info(self, word_info):
@@ -148,13 +184,13 @@ class WordWidget(QWidget):
         self.detail_stu=False
         self.update_word_info()
 
-    def resizeEvent(self, event):
-        # new_font_size = max(8, min(self.width() // 40, self.height() // 20))
-        new_font_size = min(self.width() // 20, self.height() // 10)
-        font = self.word_label.font()
-        font.setPointSize(new_font_size)
-        self.word_label.setFont(font)
-        super().resizeEvent(event)
+    # def resizeEvent(self, event):
+    #     # new_font_size = max(8, min(self.width() // 40, self.height() // 20))
+    #     new_font_size = min(self.width() // 20, self.height() // 10)
+    #     font = self.en_label.font()
+    #     font.setPointSize(new_font_size)
+    #     self.en_label.setFont(font)
+    #     super().resizeEvent(event)
 
 class MyView(QMainWindow):
     def __init__(self, title,dispatcher):

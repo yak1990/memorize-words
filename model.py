@@ -21,29 +21,35 @@ output_queue=queue.Queue()
 def translator_consumer(input_queue,dest_language='zh-cn'):
         translator = Translator()
         while True:
-            now_data = input_queue.get()
-            if now_data is None:  # 使用 None 作为生产者结束信号
-                break
-            
-            out_data={}
-            for now_word,now_list in now_data.items():
-               print('before:',now_word)
-               translation = translator.translate(now_word, dest=dest_language)
-               out_data['en']=now_word
-               out_data['cn']=translation.text
-               out_data['sentence']=[]
-               for sentence in now_list:
-                    translation = translator.translate(sentence, dest=dest_language)
-                    out_data['sentence'].append({
-                              'en':sentence,
-                              'cn':translation.text
-                              }
-                         )
-               print('done')
-               output_queue.put(out_data)
-               print(output_queue.qsize())
-               time.sleep(0.5)
-            input_queue.task_done()
+            try:
+               now_data = input_queue.get()
+               if now_data is None:  # 使用 None 作为生产者结束信号
+                    break
+               
+               out_data={}
+               for now_word,now_list in now_data.items():
+                    print('before:',now_word)
+                    translation = translator.translate(now_word, dest=dest_language)
+                    out_data['en']=now_word
+                    out_data['cn']=translation.text
+                    out_data['sentence']=[]
+                    if len(now_list)>3:
+                         now_list=random.sample(now_list,3)
+                    for sentence in now_list:
+                         translation = translator.translate(sentence, dest=dest_language)
+                         out_data['sentence'].append({
+                                   'en':sentence,
+                                   'cn':translation.text
+                                   }
+                              )
+                    print('done')
+                    output_queue.put(out_data)
+                    print(output_queue.qsize())
+                    time.sleep(0.5)
+               input_queue.task_done()
+            except:
+                 time.sleep(3)
+                 translator = Translator()
 
 
 
