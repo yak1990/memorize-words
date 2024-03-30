@@ -90,7 +90,7 @@ class WordWidget(QWidget):
         self.en_sentence=''
         self.cn_sentence=''
         self.same_en_list=[]
-        self.detail_stu=False
+        self.show_stu=0
 
     def init_ui(self):
         # 创建布局
@@ -125,7 +125,8 @@ class WordWidget(QWidget):
     
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.detail_stu = not self.detail_stu
+            self.show_stu +=1 
+            self.show_stu%=3
         elif event.button() == Qt.RightButton:
             
             event_data=my_event.Event(
@@ -155,14 +156,17 @@ class WordWidget(QWidget):
 
     def update_word_info(self):
         self.en_label.setText(self.en_text)
-        if self.detail_stu:
+        self.cn_label.setText('')
+        self.en_sentence_label.setText('')
+        self.cn_sentence_label.setText('')
+
+        if self.show_stu==1:
+            self.cn_label.setText(self.cn_text)
+            self.en_sentence_label.setText(self.en_sentence)
+        elif self.show_stu==2:
             self.cn_label.setText(self.cn_text)
             self.en_sentence_label.setText(self.en_sentence)
             self.cn_sentence_label.setText(self.cn_sentence)
-        else:
-            self.cn_label.setText('')
-            self.en_sentence_label.setText('')
-            self.cn_sentence_label.setText('')
 
             
 
@@ -173,7 +177,7 @@ class WordWidget(QWidget):
         self.cn_text=word_info['cn']
         self.en_sentence=word_info['en_sentence']
         self.cn_sentence=word_info['cn_sentence']
-        self.detail_stu=False
+        self.show_stu=0
         self.update_word_info()
 
     def resizeEvent(self, event):
