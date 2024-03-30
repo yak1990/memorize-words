@@ -99,8 +99,10 @@ class MyModel:
     
     def update(self):
          if input_queue.qsize()==0 and len(self.raw_word_dict)>0:
-               for i,j in self.raw_word_dict.items():
-                    input_queue.put({i:j})
+               input_list=[{i:j} for i,j in self.raw_word_dict.items()]
+               random.shuffle(input_list)
+               for i in input_list:
+                    input_queue.put(i)
                input_queue.put(None)
 
                consumer_thread = threading.Thread(target=translator_consumer)
