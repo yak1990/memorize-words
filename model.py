@@ -151,6 +151,14 @@ class MyModel:
 
          print(f'known len : {len(self.known_words)}')
          print(f'unfamiliar len : {len(self.word_dict)}')
+
+     
+    def set_to_unknown(self,en_text):
+         self.word_dict[en_text].extend(self.known_words[en_text])
+         del self.known_words[en_text]
+
+         print(f'known len : {len(self.known_words)}')
+         print(f'unfamiliar len : {len(self.word_dict)}')
          
 
     

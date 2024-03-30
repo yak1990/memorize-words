@@ -142,7 +142,7 @@ class WordWidget(QWidget):
     def keyPressEvent(self, event):
 
         # 按下f建表明记住单词
-        if event.key()==70:
+        if event.key()==70:  
             event_data=my_event.Event(
                 my_event.EvnetType.key,
                 {
@@ -151,6 +151,19 @@ class WordWidget(QWidget):
                 }
             )
             self.dispatcher.dispatch(event_data)
+        elif event.key()==68: # 按下d键表明删除记住的单词
+            event_data=my_event.Event(
+                my_event.EvnetType.key,
+                {
+                    'type':my_event.WordEventType.to_unknown,
+                    'en':self.en_text
+                }
+            )
+            self.dispatcher.dispatch(event_data)
+
+
+        
+        print(event.key())
 
 
 

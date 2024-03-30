@@ -47,6 +47,10 @@ class MyController:
         if event['type'] == my_event.WordEventType.to_known:
             en_text=event['en']
             self.model.set_to_known(en_text)
+        
+        elif event['type'] == my_event.WordEventType.to_unknown:
+            en_text=event['en']
+            self.model.set_to_unknown(en_text)
 
     def UpdateEventHandler(self,event_data):
         self.model.update()

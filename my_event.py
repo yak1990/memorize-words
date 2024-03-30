@@ -13,6 +13,7 @@ class ButtonEvnetType(Enum):
 class WordEventType(Enum):
     to_known=111
     to_next=222
+    to_unknown=333
 
 class Event:
     def __init__(self, event_type, data=None):
