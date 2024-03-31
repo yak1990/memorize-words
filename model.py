@@ -66,9 +66,12 @@ class MyModel:
 
          self.now_word=''
          self.now_info={}
-         
-         
 
+         self.view_cache=set()  # 当前启动浏览的单词量
+
+
+    def init_view_cache(self):
+         self.view_cache=set()
 
 
     def add_pdf(self,pdf_path):
@@ -134,7 +137,8 @@ class MyModel:
                     'en_sentence':now_sentence['en'],
                     'cn_sentence':now_sentence['cn']
                }
-
+               
+               self.view_cache.add(self.now_word)
                self.now_info=now_info
          else:
               now_info={
@@ -173,7 +177,7 @@ class MyModel:
 #          return len(self.known_words)
     
     def get_log_info(self):
-         return f'known len: {len(self.known_words)} , unfamiliar len: {len(self.word_dict)} , raw len: {len(self.raw_word_dict)}'
+         return f'known len: {len(self.known_words)} , unfamiliar len: {len(self.word_dict)} , raw len: {len(self.raw_word_dict)} , view len: {len(self.view_cache)}'
 
     def get_pdf_list(self):
          out=[i for i in self.pdf_words]
