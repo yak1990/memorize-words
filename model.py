@@ -74,6 +74,7 @@ class MyModel:
          self.view_cache=set()  # 当前启动浏览的单词量
          self.now_target=[]
          self.now_target_num=50
+         self.now_target_id=0
          if self.now_target_num>0 and len(self.word_dict)>self.now_target_num:
               self.now_target=random.sample(list(self.word_dict.keys()),self.now_target_num)
          else:
@@ -85,6 +86,7 @@ class MyModel:
         del state['view_cache']
         del state['now_target']
         del state['now_target_num']
+        del state['now_target_id']
         return state
 
     def __setstate__(self, state):
@@ -145,12 +147,10 @@ class MyModel:
          else:
                w_list=list(self.word_dict.keys())
          if len(w_list)>0:
-               next_word = random.choice(w_list)
-               run_count=10
-               while next_word==self.now_word and run_count>0:
-                    run_count-=1
-                    next_word = random.choice(w_list)
-               self.now_word=next_word
+               if self.now_target_id>=len(w_list):
+                    self.now_target_id=0
+               self.now_word = w_list[self.now_target_id]
+               self.now_target_id+=1
                
                now_sentence=random.choice(self.word_dict[self.now_word]['sentence'])
                now_info={
