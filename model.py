@@ -73,7 +73,7 @@ class MyModel:
     def __init_view_cache__(self):
          self.view_cache=set()  # 当前启动浏览的单词量
          self.now_target=[]
-         self.now_target_num=100
+         self.now_target_num=50
          if self.now_target_num>0 and len(self.word_dict)>self.now_target_num:
               self.now_target=random.sample(list(self.word_dict.keys()),self.now_target_num)
          else:
