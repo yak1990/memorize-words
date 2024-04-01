@@ -34,7 +34,6 @@ def main():
 
     def update_cache(event_data):
         save_squeeze(my_model,cache_path)
-    my_model.init_view_cache()
     
     dispatcher.add_listener(my_event.EvnetType.update,update_cache)
 

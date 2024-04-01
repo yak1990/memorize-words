@@ -67,11 +67,29 @@ class MyModel:
          self.now_word=''
          self.now_info={}
 
+         self.__init_view_cache__()
+
+    
+    def __init_view_cache__(self):
          self.view_cache=set()  # 当前启动浏览的单词量
+         self.now_target=[]
+         self.now_target_num=100
+         if self.now_target_num>0 and len(self.word_dict)>self.now_target_num:
+              self.now_target=random.sample(list(self.word_dict.keys()),self.now_target_num)
+         else:
+              self.now_target=list(self.word_dict.keys())
+              
+    
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state['view_cache']
+        del state['now_target']
+        del state['now_target_num']
+        return state
 
-
-    def init_view_cache(self):
-         self.view_cache=set()
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.__init_view_cache__()
 
 
     def add_pdf(self,pdf_path):
@@ -121,7 +139,11 @@ class MyModel:
                     output_queue.task_done()
          
     def to_next(self):
-         w_list=list(self.word_dict.keys())
+         w_list=[]
+         if len(self.now_target)>0:
+               w_list=self.now_target
+         else:
+               w_list=list(self.word_dict.keys())
          if len(w_list)>0:
                next_word = random.choice(w_list)
                run_count=10
@@ -147,11 +169,21 @@ class MyModel:
                     'en_sentence':'',
                     'cn_sentence':''
                }
+              if len(self.word_dict)>0 and len(self.now_target)==0:
+                    now_info={
+                              'en':'当前学习目标完成',
+                              'cn':'',
+                              'en_sentence':'',
+                              'cn_sentence':''
+                         }
               self.now_info=now_info
      
     def set_to_known(self,en_text):
          self.known_words[en_text].extend(self.word_dict[en_text])
          del self.word_dict[en_text]
+
+         if en_text in self.now_target:
+              self.now_target.remove(en_text)
 
          print(f'known len : {len(self.known_words)}')
          print(f'unfamiliar len : {len(self.word_dict)}')
@@ -160,6 +192,8 @@ class MyModel:
     def set_to_unknown(self,en_text):
          self.word_dict[en_text].extend(self.known_words[en_text])
          del self.known_words[en_text]
+
+         self.now_target.append(en_text)
 
          print(f'known len : {len(self.known_words)}')
          print(f'unfamiliar len : {len(self.word_dict)}')
@@ -177,7 +211,7 @@ class MyModel:
 #          return len(self.known_words)
     
     def get_log_info(self):
-         return f'known len: {len(self.known_words)} , unfamiliar len: {len(self.word_dict)} , raw len: {len(self.raw_word_dict)} , view len: {len(self.view_cache)}'
+         return f'this time target remain: {len(self.now_target)}, known len: {len(self.known_words)} , unfamiliar len: {len(self.word_dict)} , raw len: {len(self.raw_word_dict)} , view len: {len(self.view_cache)}'
 
     def get_pdf_list(self):
          out=[i for i in self.pdf_words]
