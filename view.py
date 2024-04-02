@@ -11,7 +11,8 @@ from PySide2.QtWidgets import (
     QListWidget, 
     QFileDialog,
     QTextEdit,
-    QLineEdit
+    QLineEdit,
+    QCheckBox
 )
 from PySide2.QtCore import Qt, QTimer
 import my_event
@@ -111,6 +112,9 @@ class WordWidget(QWidget):
         
         self.synonyms_label = QLabel("")
         self.synonyms_label.setWordWrap(True)
+
+        self.checkbox=QCheckBox('默认显示中文')
+        self.checkbox.setChecked(True)
     
 
         # 将控件添加到布局中
@@ -119,6 +123,7 @@ class WordWidget(QWidget):
         layout.addWidget(self.en_sentence_label)
         layout.addWidget(self.cn_sentence_label)
         layout.addWidget(self.synonyms_label)
+        layout.addWidget(self.checkbox)
 
         # 设置布局
         self.setLayout(layout)
@@ -143,6 +148,8 @@ class WordWidget(QWidget):
 
         # 按下f建表明记住单词
         if event.key()==70:  
+            self.show_stu +=1 
+            self.show_stu%=3
             event_data=my_event.Event(
                 my_event.EvnetType.key,
                 {
@@ -164,6 +171,7 @@ class WordWidget(QWidget):
 
         
         print(event.key())
+        self.update_word_info()
 
 
 
@@ -173,6 +181,9 @@ class WordWidget(QWidget):
         self.en_sentence_label.setText('')
         self.cn_sentence_label.setText('')
 
+        if self.checkbox.isChecked():
+            self.cn_label.setText(self.cn_text)
+            
         if self.show_stu==1:
             self.cn_label.setText(self.cn_text)
             self.en_sentence_label.setText(self.en_sentence)
